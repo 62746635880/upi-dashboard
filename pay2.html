@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>App Payment</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col items-center p-6">
+
+<!-- Header with Countdown -->
+<div class="w-full max-w-xl flex justify-between items-center mb-6">
+  <h1 id="appName" class="text-3xl font-bold text-indigo-600">App Name</h1>
+  <div id="timer" class="text-red-600 font-semibold text-lg">Time Left: 9:00</div>
+</div>
+
+<!-- Payment Info Card -->
+<div class="w-full max-w-xl bg-white rounded-2xl shadow-lg p-6 mb-6">
+  <div class="text-center mb-4">
+    <h2 id="clientName" class="text-2xl font-semibold text-gray-800"></h2>
+    <p class="text-xl text-green-600 mt-2">₹<span id="amount"></span></p>
+    <p class="text-gray-700 mt-2">UPI: <span id="upiId" class="font-medium"></span>
+      <button onclick="copyUPI()" class="ml-2 px-2 py-1 bg-indigo-500 text-white rounded">Copy</button>
+    </p>
+  </div>
+
+  <!-- QR Code -->
+  <div class="flex justify-center mt-4">
+    <canvas id="qrcode"></canvas>
+  </div>
+
+  <!-- Payment Buttons -->
+  <div class="flex flex-col gap-3 mt-6">
+    <a href="#" class="block w-full bg-green-500 text-white py-2 rounded text-center font-semibold">Google Pay</a>
+    <a href="#" class="block w-full bg-blue-500 text-white py-2 rounded text-center font-semibold">PhonePe</a>
+    <a href="#" class="block w-full bg-purple-600 text-white py-2 rounded text-center font-semibold">Paytm</a>
+    <a href="#" class="block w-full bg-red-600 text-white py-2 rounded text-center font-semibold">BHIM UPI</a>
+  </div>
+
+  <!-- UTR Submission -->
+  <div class="mt-6">
+    <form onsubmit="return submitUTR()">
+      <input type="text" id="utrInput" placeholder="Enter 12-digit UTR" class="w-full border p-2 rounded mb-2">
+      <p id="utrError" class="text-red-600 text-sm hidden">UTR must be 12 digits!</p>
+      <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded font-semibold">Submit UTR</button>
+    </form>
+  </div>
+
+  <!-- Success Message -->
+  <div id="successMsg" class="mt-4 text-center hidden">
+    <p class="text-green-700 font-semibold">Dear <span id="clientSuccess"></span> Sir/Mam, your <span id="amountSuccess"></span> payment for <span id="appSuccess"></span> is successful! Please wait for review.</p>
+  </div>
+</div>
+
+<script>
+  // Get URL params
+  const params = new URLSearchParams(window.location.search);
+  const client = params.get('nameInput') || 'Client';
+  const amount = params.get('amntInput') || '0';
+  const upi = params.get('vpaInput') || 'UPI-ID';
+  const appName = params.get('appName') || 'App Name';
+
+  // Display client info
+  document.getElementById('clientName').innerText = client;
+  document.getElementById('amount').innerText = amount;
+  document.getElementById('upiId').innerText = upi;
+  document.getElementById('appName').innerText = appName;
+
+  // Generate QR code
+  const upiLink = `upi://pay?pa=${encodeURIComponent(upi)}&pn=${encodeURIComponent(client)}&am=${encodeURIComponent(amount)}&cu=INR`;
+  QRCode.toCanvas(document.getElementById('qrcode'), upiLink, { width: 180 });
+
+  // Copy UPI
+  function copyUPI() {
+    navigator.clipboard.writeText(upi);
+    alert("UPI copied!");
+  }
+
+  // Countdown Timer
+  let countdown = 9 * 60;
+  const timerEl = document.getElementById('timer');
+  const timerInterval = setInterval(() => {
+    let minutes = Math.floor(countdown / 60);
+    let seconds = countdown % 60;
+    timerEl.innerText = `Time Left: ${minutes}:${seconds.toString().padStart(2,'0')}`;
+    if(countdown <= 0){
+      clearInterval(timerInterval);
+      document.body.innerHTML = `<div class="text-center mt-20"><h1 class="text-3xl font-bold text-red-600">Session Expired</h1></div>`;
+    }
+    countdown--;
+  }, 1000);
+
+  // Submit UTR
+  function submitUTR() {
+    const utr = document.getElementById('utrInput').value.trim();
+    if(utr.length !== 12) {
+      document.getElementById('utrError').classList.remove('hidden');
+      setTimeout(()=>{ document.getElementById('utrError').classList.add('hidden'); },1500);
+      return false;
+    }
+    document.getElementById('successMsg').classList.remove('hidden');
+    document.getElementById('clientSuccess').innerText = client;
+    document.getElementById('amountSuccess').innerText = `₹${amount}`;
+    document.getElementById('appSuccess').innerText = appName;
+    return false; // Prevent form submission
+  }
+</script>
+</body>
+</html>
