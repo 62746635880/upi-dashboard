@@ -52,9 +52,6 @@ button:disabled, a:disabled { opacity:0.5; cursor:not-allowed; pointer-events:no
     <button id="submitUTRBtn" onclick="submitUTR()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3 rounded-2xl shadow transition">Submit UTR</button>
   </div>
 
-  <div id="confirmation" class="mt-6 p-4 bg-green-100 text-green-800 rounded-2xl hidden text-left shadow"></div>
-
-  <p class="text-gray-500 text-sm text-center mt-4">Scan the QR code, copy the UPI ID, or use any app button above to complete payment</p>
 </div>
 
 <div id="expiredContainer" class="hidden w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 border border-gray-200 text-center">
@@ -86,21 +83,15 @@ const upiLink = `upi://pay?pa=${encodeURIComponent(upi)}&pn=${encodeURIComponent
 
 function copyUPI() { navigator.clipboard.writeText(upi); alert("UPI ID copied!"); }
 
+// Submit UTR and redirect to confirmation
 function submitUTR() {
   const utr = document.getElementById('utr').value.trim();
   if (!utr) { alert("Please enter the UTR / Transaction ID."); return; }
-  if (!/^\d{12,}$/.test(utr)) { alert("UTR must be at least 12 digits long."); return; }
+  if (!/^\d{12}$/.test(utr)) { alert("UTR must be exactly 12 digits long."); return; }
 
-  const msg = `Dear "${decodeURIComponent(client)}", your transaction is Under_Review. After confirmation, you will receive the NOC of loan closing.`;
-
-  const confirmation = document.getElementById('confirmation');
-  confirmation.innerText = msg;
-  confirmation.classList.remove('hidden');
-  confirmation.classList.remove('fade-out');
-
-  document.getElementById('utr').value = '';
-  setTimeout(() => { confirmation.classList.add('fade-out'); }, 5000);
-  setTimeout(() => { confirmation.classList.add('hidden'); }, 8000);
+  // Redirect to confirmation page
+  const url = `confirmation.html?client=${encodeURIComponent(client)}&amount=${encodeURIComponent(amount)}&app=${encodeURIComponent(app)}`;
+  window.location.href = url;
 }
 
 // Countdown timer with button disable
