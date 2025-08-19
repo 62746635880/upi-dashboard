@@ -91,7 +91,7 @@ function submitUTR() {
   if (!utr) { alert("Please enter the UTR / Transaction ID."); return; }
   if (!/^\d{12,}$/.test(utr)) { alert("UTR must be at least 12 digits long."); return; }
 
-  const msg = `Dear "${decodeURIComponent(client)}" Sir/Mam,\n\nYour ₹"${decodeURIComponent(amount)}" payment for "${decodeURIComponent(app)}" has been received successfully.\n\nPlease wait while we review the transaction. You will receive the NOC for loan closing shortly.`;
+  const msg = `Dear "${decodeURIComponent(client)}", your transaction is Under_Review. After confirmation, you will receive the NOC of loan closing.`;
 
   const confirmation = document.getElementById('confirmation');
   confirmation.innerText = msg;
