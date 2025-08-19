@@ -1,93 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Devil Link Generator</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+<body class="bg-gradient-to-r from-indigo-100 to-purple-100 min-h-screen flex flex-col items-center justify-center p-4">
 
-<div class="w-full max-w-xl bg-white shadow-2xl rounded-2xl p-8">
-  <h1 class="text-3xl font-bold text-center text-indigo-700 mb-6">Devil Link Generator</h1>
+<div class="w-full max-w-xl bg-white shadow-2xl rounded-3xl p-8 border border-gray-200">
 
+  <!-- Header -->
+  <h1 class="text-4xl font-extrabold text-center text-white mb-8 
+             bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 
+             p-6 rounded-3xl shadow-lg animate-pulse">
+    Devil Link Generator
+  </h1>
+
+  <!-- App Name -->
   <div class="mb-4">
-    <label class="block font-semibold mb-1">App Name</label>
-    <input type="text" id="appName" placeholder="Enter App Name" class="w-full p-2 rounded border">
+    <label for="appName" class="block text-gray-700 font-semibold mb-2">App Name (Payment Page Header)</label>
+    <input id="appName" type="text" placeholder="My App" 
+      class="w-full px-5 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"/>
   </div>
 
+  <!-- Standard UPI ID -->
   <div class="mb-4">
-    <label class="block font-semibold mb-1">Client Name</label>
-    <input type="text" id="clientName" placeholder="Enter Client Name" class="w-full p-2 rounded border">
+    <label for="upiId" class="block text-gray-700 font-semibold mb-2">Standard UPI ID</label>
+    <input id="upiId" type="text" placeholder="yourname@upi" 
+      class="w-full px-5 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"/>
   </div>
 
-  <div class="mb-4">
-    <label class="block font-semibold mb-1">Amount</label>
-    <input type="number" id="amount" placeholder="Enter Amount" class="w-full p-2 rounded border">
+  <!-- Client Name & Amount -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div>
+      <label for="customerName" class="block text-gray-700 font-semibold mb-2">Client Name</label>
+      <input id="customerName" type="text" placeholder="John Doe" 
+        class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"/>
+    </div>
+    <div>
+      <label for="amount" class="block text-gray-700 font-semibold mb-2">Amount (INR)</label>
+      <input id="amount" type="number" placeholder="1000" 
+        class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"/>
+    </div>
   </div>
 
-  <div class="mb-4">
-    <label class="block font-semibold mb-1">UPI ID</label>
-    <input type="text" id="upiId" placeholder="Enter UPI ID" class="w-full p-2 rounded border">
+  <!-- QR Upload -->
+  <div class="mb-6">
+    <label for="qrFile" class="block text-gray-700 font-semibold mb-2">Upload QR Code (optional)</label>
+    <input id="qrFile" type="file" accept="image/*" 
+      class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+    <img id="qrPreview" class="mt-3 max-w-xs rounded-xl shadow-md hidden" alt="QR Preview"/>
   </div>
 
-  <div class="mb-4">
-    <label class="block font-semibold mb-1">Upload QR (Optional)</label>
-    <input type="file" id="qrUpload" accept="image/*" class="w-full p-2 rounded border">
-    <img id="qrPreview" class="mt-2 mx-auto hidden w-32 h-32 object-contain rounded-lg border" alt="QR Preview">
-  </div>
-
-  <button onclick="generateLinks()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded font-semibold mt-3">
-    Generate Links
+  <!-- Generate Button -->
+  <button onclick="generateLink()" 
+    class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3 rounded-2xl shadow-lg transition mb-4">
+    Generate Payment Link
   </button>
 
-  <div id="linksOutput" class="mt-6 hidden">
-    <p class="mb-2">Payment Link 1:</p>
-    <a id="link1" href="#" target="_blank" class="text-indigo-600 underline block mb-3"></a>
-    <p class="mb-2">Payment Link 2:</p>
-    <a id="link2" href="#" target="_blank" class="text-indigo-600 underline block"></a>
+  <!-- Output -->
+  <div id="output" class="hidden p-4 bg-indigo-50 rounded-xl border border-indigo-200">
+    <p class="text-gray-700 font-medium mb-2">Generated Link:</p>
+    <a id="paymentLink" href="#" target="_blank" 
+       class="break-all text-indigo-700 underline hover:text-indigo-900 font-semibold"></a>
   </div>
 </div>
 
 <script>
-let qrDataURL = '';
+const qrInput = document.getElementById('qrFile');
+const qrPreview = document.getElementById('qrPreview');
 
-document.getElementById('qrUpload').addEventListener('change', function(e){
-    const file = e.target.files[0];
-    if(file){
-        const reader = new FileReader();
-        reader.onload = function(ev){
-            qrDataURL = ev.target.result; // store image as base64
-            const preview = document.getElementById('qrPreview');
-            preview.src = qrDataURL;
-            preview.classList.remove('hidden');
-        }
-        reader.readAsDataURL(file);
-    }
+qrInput.addEventListener('change', () => {
+  const file = qrInput.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      qrPreview.src = e.target.result;
+      qrPreview.classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+  } else {
+    qrPreview.src = '';
+    qrPreview.classList.add('hidden');
+  }
 });
 
-function generateLinks() {
-  const appName = document.getElementById('appName').value.trim();
-  const client = document.getElementById('clientName').value.trim();
-  const amount = document.getElementById('amount').value.trim();
+function generateLink() {
   const upiId = document.getElementById('upiId').value.trim();
+  const name = document.getElementById('customerName').value.trim();
+  const amount = document.getElementById('amount').value.trim();
+  const app = document.getElementById('appName').value.trim() || "Payment";
 
-  if (!appName || !client || !amount || !upiId) {
-    alert("Please fill all fields");
+  if (!upiId || !name || !amount) {
+    alert("Please fill all fields.");
     return;
   }
 
-  const baseUrl = window.location.origin;
-  const params = `?appName=${encodeURIComponent(appName)}&nameInput=${encodeURIComponent(client)}&amntInput=${encodeURIComponent(amount)}&vpaInput=${encodeURIComponent(upiId)}&qr=${encodeURIComponent(qrDataURL)}`;
-  const link1 = `${baseUrl}/pay.html${params}`;
-  const link2 = `${baseUrl}/pay2.html${params}`;
+  const qrFile = document.getElementById('qrFile').files[0];
+  if (qrFile) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const qrData = encodeURIComponent(e.target.result);
+      createLink(qrData);
+    };
+    reader.readAsDataURL(qrFile);
+  } else {
+    createLink("");
+  }
 
-  document.getElementById('link1').href = link1;
-  document.getElementById('link1').innerText = link1;
-  document.getElementById('link2').href = link2;
-  document.getElementById('link2').innerText = link2;
-  document.getElementById('linksOutput').classList.remove('hidden');
+  function createLink(qrData) {
+    const expiryTime = Date.now() + 9*60*1000; // 9 minutes countdown
+    const link = `pay.html?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(name)}&am=${encodeURIComponent(amount)}&app=${encodeURIComponent(app)}&qr=${qrData}&expiry=${expiryTime}`;
+    document.getElementById('paymentLink').href = link;
+    document.getElementById('paymentLink').innerText = link;
+    document.getElementById('output').classList.remove('hidden');
+  }
 }
 </script>
 </body>
