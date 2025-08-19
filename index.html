@@ -1,63 +1,94 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Devil Link Generator</title>
+<script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
 
-<h1 style="text-align:center; margin:20px 0; color:#2AB5FF;">Devil Link Generator</h1>
+<div class="w-full max-w-xl bg-white shadow-2xl rounded-2xl p-8">
+  <h1 class="text-3xl font-bold text-center text-indigo-700 mb-6">Devil Link Generator</h1>
 
-<section style="max-width:500px; margin:0 auto; text-align:center;">
-    <div style="margin-bottom:15px;">
-        <label>Amount:</label><br>
-        <input type="text" id="amount_input" placeholder="Enter Amount" style="padding:8px; width:90%;">
-    </div>
-    <div style="margin-bottom:15px;">
-        <label>Client Name:</label><br>
-        <input type="text" id="name_input" placeholder="Enter Client Name" style="padding:8px; width:90%;">
-    </div>
-    <div style="margin-bottom:15px;">
-        <label>UPI ID:</label><br>
-        <input type="text" id="vpa_input" placeholder="Enter UPI ID" style="padding:8px; width:90%;">
-    </div>
+  <div class="mb-4">
+    <label class="block font-semibold mb-1">App Name</label>
+    <input type="text" id="appName" placeholder="Enter App Name" class="w-full p-2 rounded border">
+  </div>
 
-    <button onclick="generateLinks()" style="padding:10px 20px; background:#2AB5FF; color:#fff; border:none; cursor:pointer; border-radius:5px;">
-        Generate Links
-    </button>
+  <div class="mb-4">
+    <label class="block font-semibold mb-1">Client Name</label>
+    <input type="text" id="clientName" placeholder="Enter Client Name" class="w-full p-2 rounded border">
+  </div>
 
-    <div style="margin-top:20px;">
-        <a id="link1" href="#" target="_blank" style="display:block; margin:10px 0; color:blue;">Link 1</a>
-        <a id="link2" href="#" target="_blank" style="display:block; margin:10px 0; color:blue;">Link 2</a>
-    </div>
-</section>
+  <div class="mb-4">
+    <label class="block font-semibold mb-1">Amount</label>
+    <input type="number" id="amount" placeholder="Enter Amount" class="w-full p-2 rounded border">
+  </div>
+
+  <div class="mb-4">
+    <label class="block font-semibold mb-1">UPI ID</label>
+    <input type="text" id="upiId" placeholder="Enter UPI ID" class="w-full p-2 rounded border">
+  </div>
+
+  <div class="mb-4">
+    <label class="block font-semibold mb-1">Upload QR (Optional)</label>
+    <input type="file" id="qrUpload" accept="image/*" class="w-full p-2 rounded border">
+    <img id="qrPreview" class="mt-2 mx-auto hidden w-32 h-32 object-contain rounded-lg border" alt="QR Preview">
+  </div>
+
+  <button onclick="generateLinks()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded font-semibold mt-3">
+    Generate Links
+  </button>
+
+  <div id="linksOutput" class="mt-6 hidden">
+    <p class="mb-2">Payment Link 1:</p>
+    <a id="link1" href="#" target="_blank" class="text-indigo-600 underline block mb-3"></a>
+    <p class="mb-2">Payment Link 2:</p>
+    <a id="link2" href="#" target="_blank" class="text-indigo-600 underline block"></a>
+  </div>
+</div>
 
 <script>
-function generateLinks() {
-    const AMNT = document.getElementById("amount_input").value.trim();
-    const NAME = document.getElementById("name_input").value.trim();
-    const VPA = document.getElementById("vpa_input").value.trim();
+let qrDataURL = '';
 
-    if(!AMNT || !NAME || !VPA){
-        alert("Please fill all fields!");
-        return;
+document.getElementById('qrUpload').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(file){
+        const reader = new FileReader();
+        reader.onload = function(ev){
+            qrDataURL = ev.target.result; // store image as base64
+            const preview = document.getElementById('qrPreview');
+            preview.src = qrDataURL;
+            preview.classList.remove('hidden');
+        }
+        reader.readAsDataURL(file);
     }
+});
 
-    const link1 = `pay.html?amntInput=${encodeURIComponent(AMNT)}&nameInput=${encodeURIComponent(NAME)}&vpaInput=${encodeURIComponent(VPA)}`;
-    const link2 = `pay2.html?amntInput=${encodeURIComponent(AMNT)}&nameInput=${encodeURIComponent(NAME)}&vpaInput=${encodeURIComponent(VPA)}`;
+function generateLinks() {
+  const appName = document.getElementById('appName').value.trim();
+  const client = document.getElementById('clientName').value.trim();
+  const amount = document.getElementById('amount').value.trim();
+  const upiId = document.getElementById('upiId').value.trim();
 
-    document.getElementById("link1").href = link1;
-    document.getElementById("link1").innerText = "Link 1";
+  if (!appName || !client || !amount || !upiId) {
+    alert("Please fill all fields");
+    return;
+  }
 
-    document.getElementById("link2").href = link2;
-    document.getElementById("link2").innerText = "Link 2";
+  const baseUrl = window.location.origin;
+  const params = `?appName=${encodeURIComponent(appName)}&nameInput=${encodeURIComponent(client)}&amntInput=${encodeURIComponent(amount)}&vpaInput=${encodeURIComponent(upiId)}&qr=${encodeURIComponent(qrDataURL)}`;
+  const link1 = `${baseUrl}/pay.html${params}`;
+  const link2 = `${baseUrl}/pay2.html${params}`;
+
+  document.getElementById('link1').href = link1;
+  document.getElementById('link1').innerText = link1;
+  document.getElementById('link2').href = link2;
+  document.getElementById('link2').innerText = link2;
+  document.getElementById('linksOutput').classList.remove('hidden');
 }
 </script>
-
 </body>
 </html>
- 
